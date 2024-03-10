@@ -25,7 +25,7 @@ class DBClient {
    * @returns {boolean}
    */
   isAlive() {
-    return this.client.isconnected();
+    return this.client.isConnected();
   }
 
   /**
