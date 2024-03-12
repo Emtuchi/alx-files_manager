@@ -1,6 +1,7 @@
-import dbClient from '../utils/db';
+/* eslint-disable import/no-named-as-default */
 import sha1 from 'sha1';
 import Queue from 'bull';
+import dbClient from '../utils/db';
 
 const userQueue = new Queue('userQueue');
 
@@ -13,7 +14,7 @@ export default class UsersController {
     const password = req.body ? req.body.password : null;
 
     if (!email) {
-      res.status(400).json({email : 'Missing email'});
+      res.status(400).json({ email: 'Missing email' });
       return;
     }
 
@@ -25,7 +26,7 @@ export default class UsersController {
     const users = dbClient.db.collection('users');
     users.findOne({ email }, (err, user) => {
       if (user) {
-        response.status(400).json({ error: 'Already exist' });
+        res.status(400).json({ error: 'Already exist' });
       } else {
         const hashedPassword = sha1(password);
         users.insertOne(
@@ -34,7 +35,7 @@ export default class UsersController {
             password: hashedPassword,
           },
         ).then((result) => {
-          response.status(201).json({ id: result.insertedId, email });
+          res.status(201).json({ id: result.insertedId, email });
           userQueue.add({ userId: result.insertedId });
         }).catch((error) => console.log(error));
       }
