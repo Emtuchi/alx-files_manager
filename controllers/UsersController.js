@@ -2,7 +2,10 @@
 import sha1 from 'sha1';
 import Queue from 'bull';
 import dbClient from '../utils/db';
+import redisClient from '../utils/redis';
+
 const { ObjectId } = require('mongodb');
+
 const userQueue = new Queue('userQueue');
 
 export default class UsersController {
@@ -58,7 +61,7 @@ export default class UsersController {
       });
     } else {
       console.log('Hupatikani!');
-      response.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
     }
   }
 }
