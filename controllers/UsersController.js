@@ -6,7 +6,7 @@ import dbClient from '../utils/db';
 const userQueue = new Queue('userQueue');
 
 export default class UsersController {
-  static postuser(req, res) {
+  static postNew(req, res) {
     /** checks if req.body exists, if yes, assigns the value of req.body.email
      *  to the variable email, else':' assign null
      */
@@ -36,15 +36,31 @@ export default class UsersController {
           },
         ).then((result) => {
           res.status(201).json({ id: result.insertedId, email });
-          userQueue.add({ userId: result.insertedId });
+          userQueue.add({ userId: result.insertedId.toString() });
         }).catch((error) => console.log(error));
       }
     });
   }
 
   static async getMe(req, res) {
-    const { user } = req;
-
-    res.status(200).json({ email: user.email, id: user._id.toString() });
+    const token = req.header('X-Token');
+    const key = `auth_${token}`;
+    const userId = await redisClient.get(key);
+    if (userId) {
+      const users = dbClient.db.collection('users');
+      const idObject = new ObjectID(userId);
+      users.findOne({ _id: idObject }, (err, user) => {
+        if (user) {
+          res.status(200).json({ id: userId, email: user.email });
+        } else {
+          res.status(401).json({ error: 'Unauthorized' });
+        }
+      });
+    } else {
+      console.log('Hupatikani!');
+      response.status(401).json({ error: 'Unauthorized' });
+    }
+  }
+}
   }
 }
