@@ -26,23 +26,18 @@ export default class UsersController {
       return;
     }
 
-    const users = dbClient.db.collection('users');
-    users.findOne({ email }, (err, user) => {
-      if (user) {
-        res.status(400).json({ error: 'Already exist' });
-      } else {
-        const hashedPassword = sha1(password);
-        users.insertOne(
-          {
-            email,
-            password: hashedPassword,
-          },
-        ).then((result) => {
-          res.status(201).json({ id: result.insertedId, email });
-          userQueue.add({ userId: result.insertedId.toString() });
-        }).catch((error) => console.log(error));
-      }
-    });
+    const user = dbClient.usersCollection().findOne({ email });
+
+    if (user) {
+      res.status(400).json({ error: 'Already exist' });
+      return;
+    }
+    const insertionInfo = dbClient.usersCollection()
+      .insertOne({ email, password: sha1(password) });
+    const userId = insertionInfo.insertedId.toString();
+
+    userQueue.add({ userId });
+    res.status(201).json({ email, id: userId });
   }
 
   static async getMe(req, res) {
