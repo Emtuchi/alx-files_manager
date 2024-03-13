@@ -2,7 +2,7 @@
 import sha1 from 'sha1';
 import Queue from 'bull';
 import dbClient from '../utils/db';
-
+const { ObjectId } = require('mongodb');
 const userQueue = new Queue('userQueue');
 
 export default class UsersController {
@@ -48,7 +48,7 @@ export default class UsersController {
     const userId = await redisClient.get(key);
     if (userId) {
       const users = dbClient.db.collection('users');
-      const idObject = new ObjectID(userId);
+      const idObject = new ObjectId(userId);
       users.findOne({ _id: idObject }, (err, user) => {
         if (user) {
           res.status(200).json({ id: userId, email: user.email });
@@ -60,7 +60,5 @@ export default class UsersController {
       console.log('Hupatikani!');
       response.status(401).json({ error: 'Unauthorized' });
     }
-  }
-}
   }
 }
