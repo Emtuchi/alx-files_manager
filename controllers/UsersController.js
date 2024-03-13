@@ -9,30 +9,25 @@ const { ObjectId } = require('mongodb');
 const userQueue = new Queue('userQueue');
 
 export default class UsersController {
-  static postNew(req, res) {
-    /** checks if req.body exists, if yes, assigns the value of req.body.email
-     *  to the variable email, else':' assign null
-     */
+  static async postNew(req, res) {
     const email = req.body ? req.body.email : null;
     const password = req.body ? req.body.password : null;
 
     if (!email) {
-      res.status(400).json({ email: 'Missing email' });
+      res.status(400).json({ error: 'Missing email' });
       return;
     }
-
     if (!password) {
       res.status(400).json({ error: 'Missing password' });
       return;
     }
-
-    const user = dbClient.usersCollection().findOne({ email });
+    const user = await (await dbClient.usersCollection()).findOne({ email });
 
     if (user) {
       res.status(400).json({ error: 'Already exist' });
       return;
     }
-    const insertionInfo = dbClient.usersCollection()
+    const insertionInfo = await (await dbClient.usersCollection())
       .insertOne({ email, password: sha1(password) });
     const userId = insertionInfo.insertedId.toString();
 
